@@ -53,8 +53,8 @@ def show_post(request, post_id):
 def show_category(request, cat_id):
     posts = Cars.objects.filter(cat_id=cat_id)
 
-#  if len(posts) == 0:
-#    raise Http404()
+    #if len(posts) == 0:
+        #raise Http404()
 
     context = {
         "posts": posts,
