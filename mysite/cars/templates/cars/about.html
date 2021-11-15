@@ -1,0 +1,10 @@
+{% extends  "cars/base.html" %}
+{% load cars_tags %}
+
+{% block content %}
+{% get_menu as get_m %}
+    {% for m in get_m %}
+    <h2>{{m.title}}</h2>
+        <hr>
+    {% endfor %}
+{% endblock %}
