@@ -8,10 +8,6 @@ urlpatterns = [
     path("login", login, name='login'),
     path("post/<slug:post_slug>/", ShowPost.as_view(), name='post'),
     path("category/<slug:cat_slug>/", CarsCategory.as_view(), name='category'),
-    path("bmw/", bmw),
-    path("mercedes/", mercedes),
-    path("porsche/", porsche),
-
 ]
 
 hundler404 = pageNotFound

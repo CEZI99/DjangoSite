@@ -139,21 +139,5 @@ class CarsCategory(ListView):
 #     }
 #     return render(request, "cars/start_page.html", context=context)
 
-
-def bmw(request):
-    series = CarsSeries.objects.all()
-    return render(request, "cars/bmw.html", {"series": series, "title": "BMW"})
-
-
-def mercedes(request):
-    series = CarsSeries.objects.all()
-    return render(request, "cars/mercedes.html", {"series": series, "title": "Mercedes"})
-
-
-def porsche(request):
-    series = CarsSeries.objects.all()
-    return render(request, "cars/porsche.html", {"series": series, "title": "Porsche"})
-
-
 def pageNotFound(request, exception):
     return HttpResponseNotFound("<h1>Страница не найдена</h1>")
