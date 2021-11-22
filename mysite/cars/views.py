@@ -2,20 +2,17 @@ from django.http import HttpResponse, HttpResponseNotFound, Http404
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, CreateView
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 from .models import *
 from .forms import *
+from .utils import *
 
 cats = Category.objects.all()
 posts = Cars.objects.all()
-menu = [{'title': "О сайте", 'url_name': 'about'},
-        {'title': "Добавить статью", 'url_name': 'add_page'},
-        {'title': "Обратная связь", 'url_name': 'contact'},
-        {'title': "Войти", 'url_name': 'login'}
-        ]
 
 
-class CarsHome(ListView):
+class CarsHome(DataMixin, ListView):
     model = Cars  # Выбирает все записи модели Cars и отображает в виде списка
     template_name = 'cars/start_page.html'  # Указываем путь к шаблону
     context_object_name = 'posts'  # Указываем переменную posts для шаблона start_page.html
@@ -23,12 +20,9 @@ class CarsHome(ListView):
     def get_context_data(self, *, object_list=None, **kwargs):
         # Функция формирования динамических и статических контекста и передает в шаблон
         context = super().get_context_data(**kwargs)
-        # Обращаемся к базовому классу ListView и взять у него существующий контекст
-        context['menu'] = menu
-        # Дбавляем перменную menu для шаблона start_page.html
-        context['title'] = 'Главная страница'
-        context['cat_selected'] = 0
-        return context
+        c_def = self.get_user_context(title='Главная страница.')  # Можем обращаться ко всем методам базового класса
+
+        return dict(list(context.items()) + list(c_def.items()))  # Обьеденение списков в словарь context
 
     def get_queryset(self):
         return Cars.objects.filter(mb_published=True)
@@ -50,16 +44,19 @@ def about(request):
     return render(request, "cars/about.html", {"title": "О сайте."})
 
 
-class AddPage(CreateView):
+class AddPage(LoginRequiredMixin, DataMixin, CreateView):
     form_class = AddPostForm
     template_name = 'cars/addpage.html'
     success_url = reverse_lazy('home')
+    login_url = reverse_lazy('home')
+    raise_exception = True
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['title'] = 'Добавление статьи'
-        context['menu'] = menu
-        return context
+        c_def = self.get_user_context(title='Добавить статью')  # Можем обращаться ко всем методам базового класса
+
+        return dict(list(context.items()) + list(c_def.items()))  # Обьеденение списков в словарь context
+
 
 # """Замена на классы представления"""
 # def add_page(request):
@@ -81,7 +78,7 @@ def login(request):
     return HttpResponse("<h1>Page</h1>")
 
 
-class ShowPost(DetailView):
+class ShowPost(DataMixin, DetailView):
     model = Cars
     template_name = 'cars/post.html'
     slug_url_kwarg = 'post_slug'  # Подставляем пересменную post_slug в маршрутизацию
@@ -89,9 +86,9 @@ class ShowPost(DetailView):
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['title'] = context['post']
-        context['menu'] = menu
-        return context
+        c_def = self.get_user_context(title='post')  # Можем обращаться ко всем методам базового класса
+
+        return dict(list(context.items()) + list(c_def.items()))  # Обьеденение списков в словарь context
 
 
 # """Замена на классы представления"""
@@ -106,7 +103,7 @@ class ShowPost(DetailView):
 #     return render(request, 'cars/post.html', context=context)
 
 
-class CarsCategory(ListView):
+class CarsCategory(DataMixin, ListView):
     model = Category
     template_name = 'cars/start_page.html'
     context_object_name = 'posts'
@@ -118,11 +115,10 @@ class CarsCategory(ListView):
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['title'] = 'Категория - ' + str(context['posts'][0].cat)
+        c_def = self.get_user_context(title="Категория - " + str(context['posts'][0].cat),
+                                      cat_selected=context['posts'][0].cat_id)
         # Берем первую запись из posts и обращаемся к параметру атрибуту cat, который возвращает название категории
-        context['menu'] = menu
-        context['cat_selected'] = context['posts'][0].cat_id
-        return context
+        return dict(list(context.items()) + list(c_def.items()))  # Обьеденение списков в словарь context
 
 
 # """Замена на классы представления"""
