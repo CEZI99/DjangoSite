@@ -10,6 +10,8 @@ menu = [{'title': "О сайте", 'url_name': 'about'},
 
 
 class DataMixin:
+    paginate_by = 3  # Пагинация страницы, по 3 поста на страницу
+
     def get_user_context(self, **kwargs):  # Создает контекст для шаблона
         context = kwargs  # Для передачи аргументов из views.py
         cats = Category.objects.annotate(Count('cars'))  # Количество постов связянных с этой рубрикой
