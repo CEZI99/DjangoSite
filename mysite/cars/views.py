@@ -135,5 +135,17 @@ class CarsCategory(DataMixin, ListView):
 #     }
 #     return render(request, "cars/start_page.html", context=context)
 
+class RegisterUser(DataMixin, CreateView):
+    form_class = RegisterUserForm
+    template_name = "cars/register.html"
+    success_url = reverse_lazy(login)
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        c_def = self.get_user_context(title='Регистрация')  # Можем обращаться ко всем методам базового класса
+
+        return dict(list(context.items()) + list(c_def.items()))  # Обьеденение списков в словарь context
+
+
 def pageNotFound(request, exception):
     return HttpResponseNotFound("<h1>Страница не найдена</h1>")
