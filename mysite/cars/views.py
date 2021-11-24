@@ -3,7 +3,7 @@ from django.contrib.auth.views import LoginView
 from django.http import HttpResponse, HttpResponseNotFound, Http404
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
-from django.views.generic import ListView, DetailView, CreateView
+from django.views.generic import ListView, DetailView, CreateView, FormView
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 from .models import *
@@ -23,8 +23,10 @@ class CarsHome(DataMixin, ListView):
 
         return dict(list(context.items()) + list(c_def.items()))  # Обьеденение списков в словарь context
 
-    def get_queryset(self):
-        return Cars.objects.filter(mb_published=True)
+    def get_queryset(self):  # Выборка записей из таблицы Cars
+        return Cars.objects.filter(mb_published=True).select_related('cat')  # Убираем дубли в SQL заросах
+        # Реализует "жадный" запрос, берёт все связанные данные из модели Category и тогда при выводе рубрик
+        # в base.html не будет выполнятся дополнительный  SQL запрос
 
 
 # """Замена на классы представления"""
@@ -69,8 +71,24 @@ class AddPage(LoginRequiredMixin, DataMixin, CreateView):
 #     return render(request, "cars/addpage.html", {'form': form, "menu": menu, "title": "Добавление статьи"})
 
 
-def contact(request):
-    return HttpResponse("<h1>Page</h1>")
+# def contact(request):
+#     return HttpResponse("<h1>Page</h1>")
+
+
+class ContactFormView(DataMixin, FormView):  # FormView - форма не связанная с моделями
+    form_class = ContactForm
+    template_name = "cars/contact.html"
+    success_url = reverse_lazy("home")  # При успешном заполнении формы, то перенаправимся в стартовую страницу
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        c_def = self.get_user_context(title='Обратная связь')  # Можем обращаться ко всем методам базового класса
+
+        return dict(list(context.items()) + list(c_def.items()))  # Обьеденение списков в словарь context
+
+    def form_valid(self, form):  # Вызывается, если пользователь верно заполнил поля конактной формы(ContactForm)
+        print(form.cleaned_data)
+        return redirect('home')
 
 
 # def login(request):
@@ -110,12 +128,16 @@ class CarsCategory(DataMixin, ListView):
 
     def get_queryset(self):
         # Выбираем записи из таблицы Cars только те, которым соответствует категория по указанному слагу
-        return Cars.objects.filter(cat__slug=self.kwargs['cat_slug'], mb_published=True)
+        return Cars.objects.filter(cat__slug=self.kwargs['cat_slug'], mb_published=True).select_related('cat')
+        # Убираем дубли в SQL заросах
+        # Реализует "жадный" запрос, берёт все связанные данные из модели Category и тогда при выводе рубрик
+        # в base.html не будет выполнятся дополнительный  SQL запрос
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
-        c_def = self.get_user_context(title="Категория - " + str(context['posts'][0].cat),
-                                      cat_selected=context['posts'][0].cat_id)
+        c = Category.objects.get(slug=self.kwargs['cat_slug'])  # Оптимизация вложенного запрса, удаления дублей(SQL)
+        c_def = self.get_user_context(title="Категория - " + str(c.name),
+                                      cat_selected=c.pk)
         # Берем первую запись из posts и обращаемся к параметру атрибуту cat, который возвращает название категории
         return dict(list(context.items()) + list(c_def.items()))  # Обьеденение списков в словарь context
 
