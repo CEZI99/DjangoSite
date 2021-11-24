@@ -23,8 +23,10 @@ class CarsHome(DataMixin, ListView):
 
         return dict(list(context.items()) + list(c_def.items()))  # Обьеденение списков в словарь context
 
-    def get_queryset(self):
-        return Cars.objects.filter(mb_published=True)
+    def get_queryset(self):  # Выборка записей из таблицы Cars
+        return Cars.objects.filter(mb_published=True).select_related('cat')  # Убираем дубли в SQL заросах
+        # Реализует "жадный" запрос, берёт все связанные данные из модели Category и тогда при выводе рубрик
+        # в base.html не будет выполнятся дополнительный  SQL запрос
 
 
 # """Замена на классы представления"""
@@ -110,12 +112,16 @@ class CarsCategory(DataMixin, ListView):
 
     def get_queryset(self):
         # Выбираем записи из таблицы Cars только те, которым соответствует категория по указанному слагу
-        return Cars.objects.filter(cat__slug=self.kwargs['cat_slug'], mb_published=True)
+        return Cars.objects.filter(cat__slug=self.kwargs['cat_slug'], mb_published=True).select_related('cat')
+        # Убираем дубли в SQL заросах
+        # Реализует "жадный" запрос, берёт все связанные данные из модели Category и тогда при выводе рубрик
+        # в base.html не будет выполнятся дополнительный  SQL запрос
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
-        c_def = self.get_user_context(title="Категория - " + str(context['posts'][0].cat),
-                                      cat_selected=context['posts'][0].cat_id)
+        c = Category.objects.get(slug=self.kwargs['cat_slug'])  # Оптимизация вложенного запрса, удаления дублей(SQL)
+        c_def = self.get_user_context(title="Категория - " + str(c.name),
+                                      cat_selected=c.pk)
         # Берем первую запись из posts и обращаемся к параметру атрибуту cat, который возвращает название категории
         return dict(list(context.items()) + list(c_def.items()))  # Обьеденение списков в словарь context
 
