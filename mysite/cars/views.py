@@ -3,7 +3,7 @@ from django.contrib.auth.views import LoginView
 from django.http import HttpResponse, HttpResponseNotFound, Http404
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
-from django.views.generic import ListView, DetailView, CreateView
+from django.views.generic import ListView, DetailView, CreateView, FormView
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 from .models import *
@@ -71,8 +71,24 @@ class AddPage(LoginRequiredMixin, DataMixin, CreateView):
 #     return render(request, "cars/addpage.html", {'form': form, "menu": menu, "title": "Добавление статьи"})
 
 
-def contact(request):
-    return HttpResponse("<h1>Page</h1>")
+# def contact(request):
+#     return HttpResponse("<h1>Page</h1>")
+
+
+class ContactFormView(DataMixin, FormView):  # FormView - форма не связанная с моделями
+    form_class = ContactForm
+    template_name = "cars/contact.html"
+    success_url = reverse_lazy("home")  # При успешном заполнении формы, то перенаправимся в стартовую страницу
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        c_def = self.get_user_context(title='Обратная связь')  # Можем обращаться ко всем методам базового класса
+
+        return dict(list(context.items()) + list(c_def.items()))  # Обьеденение списков в словарь context
+
+    def form_valid(self, form):  # Вызывается, если пользователь верно заполнил поля конактной формы(ContactForm)
+        print(form.cleaned_data)
+        return redirect('home')
 
 
 # def login(request):
