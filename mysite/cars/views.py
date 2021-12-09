@@ -42,7 +42,7 @@ class CarsHome(DataMixin, ListView):
 
 
 def about(request):
-    return render(request, "cars/about.html", {"title": "О сайте."})
+    return redirect("home")
 
 
 class AddPage(LoginRequiredMixin, DataMixin, CreateView):
