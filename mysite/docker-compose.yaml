@@ -1,0 +1,11 @@
+version: '3.3'
+
+services:
+  web:
+    build: .
+    command: python /usr/src/django_test/manage.py runserver 0.0.0.0:8000
+
+    volumes:
+      - .:/usr/src/django_test
+    ports:
+      - 8000:8000
