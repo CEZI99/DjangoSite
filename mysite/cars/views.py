@@ -194,3 +194,4 @@ def logout_user(request):  # Функция представления для в
 
 def pageNotFound(request, exception):
     return HttpResponseNotFound("<h1>Страница не найдена</h1>")
+

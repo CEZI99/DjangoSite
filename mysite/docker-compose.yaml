@@ -1,0 +1,16 @@
+version: '3.3'
+
+services:
+  django:
+    container_name: django_serv
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    command:
+      # Выполнение миграции и запускаем сервер
+      bash -c "python /usr/src/django_test/manage.py migrate --noinput &&
+      python /usr/src/django_test/manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/usr/src/django_test
+    ports:
+      - 8000:8000
