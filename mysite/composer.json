@@ -3,7 +3,7 @@
         {"type": "composer", "url": "https://test_repman.repo.repman.io"}
     ],
     
-    "name": "test_repman/path-to-junior",
+    "name": "test_repman/mysite",
     "require": {}
 
 }
